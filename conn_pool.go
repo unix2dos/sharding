@@ -53,7 +53,8 @@ func (pool ConnPool) QueryContext(ctx context.Context, query string, args ...int
 	if table != "" {
 		if r, ok := pool.sharding.configs[table]; ok {
 			if r.DoubleWrite {
-				pool.ConnPool.ExecContext(ctx, ftQuery, args...)
+				//pool.ConnPool.ExecContext(ctx, ftQuery, args...) // 不再双查
+				_ = ftQuery
 			}
 		}
 	}
