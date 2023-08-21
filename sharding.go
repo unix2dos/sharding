@@ -32,6 +32,7 @@ type Sharding struct {
 
 	_config Config
 	_tables []interface{}
+	_tableConfigs map[string]Config
 }
 
 //  Config specifies the configuration for sharding.
@@ -106,6 +107,12 @@ func Register(config Config, tables ...interface{}) *Sharding {
 	}
 }
 
+func RegisterTablesConfigs(configs map[string]Config) *Sharding {
+	return &Sharding{
+		_tableConfigs: configs,
+	}
+}
+
 func (s *Sharding) compile() error {
 	if s.configs == nil {
 		s.configs = make(map[string]Config)
@@ -121,6 +128,10 @@ func (s *Sharding) compile() error {
 				return err
 			}
 		}
+	}
+
+	for table, config := range s._tableConfigs {
+		s.configs[table] = config
 	}
 
 	for t, c := range s.configs {
