@@ -212,7 +212,18 @@ func (s *Sharding) compile() error {
 
 // Name plugin name for Gorm plugin interface
 func (s *Sharding) Name() string {
-	return "gorm:sharding"
+	var tableName string
+	for _, table := range s._tables {
+		if t, ok := table.(string); ok {
+			tableName += t
+		} else {
+			stmt := &gorm.Statement{DB: s.DB}
+			if err := stmt.Parse(table); err == nil {
+				tableName += stmt.Table
+			}
+		}
+	}
+	return fmt.Sprintf("gorm:sharding:%s", tableName)
 }
 
 // LastQuery get last SQL query
