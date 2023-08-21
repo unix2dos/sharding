@@ -173,6 +173,10 @@ func (s *Sharding) compile() error {
 			} else if c.NumberOfShards < 10000 {
 				c.tableFormat = "_%04d"
 			}
+
+			// 解决闭包问题
+			tableFormat := c.tableFormat
+			numberOfShards := c.NumberOfShards
 			c.ShardingAlgorithm = func(value interface{}) (suffix string, err error) {
 				id := 0
 				switch value := value.(type) {
@@ -190,13 +194,14 @@ func (s *Sharding) compile() error {
 						"if you use other type, specify you own ShardingAlgorithm")
 				}
 
-				return fmt.Sprintf(c.tableFormat, id%int(c.NumberOfShards)), nil
+				return fmt.Sprintf(tableFormat, id%int(numberOfShards)), nil
 			}
 		}
 
 		if c.ShardingSuffixs == nil {
+			numberOfShards := c.NumberOfShards
 			c.ShardingSuffixs = func() (suffixs []string) {
-				for i := 0; i < int(c.NumberOfShards); i++ {
+				for i := 0; i < int(numberOfShards); i++ {
 					suffix, err := c.ShardingAlgorithm(i)
 					if err != nil {
 						return nil
@@ -209,8 +214,9 @@ func (s *Sharding) compile() error {
 
 		if c.ShardingAlgorithmByPrimaryKey == nil {
 			if c.PrimaryKeyGenerator == PKSnowflake {
+				tableFormat := c.tableFormat
 				c.ShardingAlgorithmByPrimaryKey = func(id int64) (suffix string) {
-					return fmt.Sprintf(c.tableFormat, snowflake.ParseInt64(id).Node())
+					return fmt.Sprintf(tableFormat, snowflake.ParseInt64(id).Node())
 				}
 			}
 		}
